@@ -17,6 +17,7 @@ type Config struct {
 	UTC            bool
 	SkipPath       []string
 	SkipPathRegexp *regexp.Regexp
+	AppLayer       string
 }
 
 // SetLogger initializes the logging middleware.
@@ -73,8 +74,16 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				msg = c.Errors.String()
 			}
 
+			appLayer := "gin"
+
+			newAppLayer := newConfig.AppLayer
+
+			if newAppLayer != "" {
+				appLayer = newAppLayer
+			}
+
 			dumplogger := sublog.With().
-				Str("appLayer", "gin").
+				Str("appLayer", appLayer).
 				Int("status", c.Writer.Status()).
 				Str("method", c.Request.Method).
 				Str("path", path).
