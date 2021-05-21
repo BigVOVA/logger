@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/gin-contrib/logger"
+	"github.com/BigVOVA/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

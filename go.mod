@@ -1,4 +1,4 @@
-module github.com/gin-contrib/logger
+module github.com/BigVOVA/logger
 
 go 1.16
 
