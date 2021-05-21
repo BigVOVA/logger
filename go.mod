@@ -1,8 +1,8 @@
 module github.com/gin-contrib/logger
 
-go 1.13
+go 1.16
 
 require (
-	github.com/gin-gonic/gin v1.6.3
-	github.com/rs/zerolog v1.18.0
+	github.com/gin-gonic/gin v1.7.1
+	github.com/rs/zerolog v1.22.0
 )
