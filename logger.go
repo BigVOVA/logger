@@ -1,8 +1,10 @@
 package logger
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,9 +71,16 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				end = end.UTC()
 			}
 
-			msg := "Request"
-			if len(c.Errors) > 0 {
-				msg = c.Errors.String()
+			msg := "request ok"
+
+			errors := c.Errors
+
+			if errors != nil && len(errors) > 0 {
+				errMsgs := make([]string, len(errors))
+				for i, err := range errors {
+					errMsgs = append(errMsgs, fmt.Sprintf("error #%d: %s", i+1, err.Error()))
+				}
+				msg = strings.Join(errMsgs, ", ")
 			}
 
 			appLayer := "gin"
