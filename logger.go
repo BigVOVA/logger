@@ -76,7 +76,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 			errors := c.Errors
 
 			if errors != nil && len(errors) > 0 {
-				errMsgs := make([]string, len(errors))
+				errMsgs := make([]string, 0)
 				for i, err := range errors {
 					errMsgs = append(errMsgs, fmt.Sprintf("error #%d: %s", i+1, err.Error()))
 				}
