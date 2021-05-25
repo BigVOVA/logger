@@ -83,7 +83,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 			}
 
 			dumplogger := sublog.With().
-				Str("appLayer", appLayer).
+				Str("layer", appLayer).
 				Int("status", c.Writer.Status()).
 				Str("method", c.Request.Method).
 				Str("path", path).
