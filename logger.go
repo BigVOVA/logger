@@ -44,6 +44,14 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 		sublog = *newConfig.Logger
 	}
 
+	appLayer := "gin"
+
+	newAppLayer := newConfig.AppLayer
+
+	if newAppLayer != "" {
+		appLayer = newAppLayer
+	}
+
 	return func(c *gin.Context) {
 		start := time.Now()
 		reqUuid := uuid.NewString()
@@ -53,6 +61,17 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 		if raw != "" {
 			path = path + "?" + raw
 		}
+
+		reqInitLogger := sublog.With().
+			Str("layer", appLayer).
+			Str("uuid", reqUuid).
+			Str("method", c.Request.Method).
+			Str("path", path).
+			Str("ip", c.ClientIP()).
+			Str("user_agent", c.Request.UserAgent()).
+			Logger()
+
+		reqInitLogger.Debug().Msg("request detected")
 
 		c.Next()
 		track := true
@@ -74,7 +93,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				end = end.UTC()
 			}
 
-			msg := "request"
+			msg := "request summary"
 
 			errors := c.Errors
 
@@ -86,15 +105,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				msg = strings.Join(errMsgs, ", ")
 			}
 
-			appLayer := "gin"
-
-			newAppLayer := newConfig.AppLayer
-
-			if newAppLayer != "" {
-				appLayer = newAppLayer
-			}
-
-			dumplogger := sublog.With().
+			dumpLogger := sublog.With().
 				Str("layer", appLayer).
 				Str("uuid", reqUuid).
 				Int("status", c.Writer.Status()).
@@ -108,16 +119,16 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 			switch {
 			case c.Writer.Status() >= http.StatusBadRequest && c.Writer.Status() < http.StatusInternalServerError:
 				{
-					dumplogger.Warn().
+					dumpLogger.Warn().
 						Msg(msg)
 				}
 			case c.Writer.Status() >= http.StatusInternalServerError:
 				{
-					dumplogger.Error().
+					dumpLogger.Error().
 						Msg(msg)
 				}
 			default:
-				dumplogger.Info().
+				dumpLogger.Info().
 					Msg(msg)
 			}
 		}
