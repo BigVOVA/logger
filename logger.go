@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"regexp"
 	"strings"
@@ -45,6 +46,8 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		start := time.Now()
+		reqUuid := uuid.NewString()
+		c.Set("uuid", reqUuid)
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 		if raw != "" {
@@ -93,6 +96,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 
 			dumplogger := sublog.With().
 				Str("layer", appLayer).
+				Str("uuid", reqUuid).
 				Int("status", c.Writer.Status()).
 				Str("method", c.Request.Method).
 				Str("path", path).
