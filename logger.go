@@ -71,7 +71,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				end = end.UTC()
 			}
 
-			msg := "request ok"
+			msg := "request"
 
 			errors := c.Errors
 
