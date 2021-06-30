@@ -20,6 +20,7 @@ type Config struct {
 	UTC            bool
 	SkipPath       []string
 	SkipPathRegexp *regexp.Regexp
+	CheckPath []string
 	AppLayer       string
 }
 
@@ -29,6 +30,15 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 	if len(config) > 0 {
 		newConfig = config[0]
 	}
+
+	var check map[string]struct{}
+	if length := len(newConfig.CheckPath); length > 0 {
+		check = make(map[string]struct{}, length)
+		for _, path := range newConfig.CheckPath {
+			check[path] = struct{}{}
+		}
+	}
+
 	var skip map[string]struct{}
 	if length := len(newConfig.SkipPath); length > 0 {
 		skip = make(map[string]struct{}, length)
@@ -62,16 +72,31 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 			path = path + "?" + raw
 		}
 
-		reqInitLogger := sublog.With().
+		noCheck := true
+
+		if _, ok := check[path]; ok {
+			noCheck = false
+		}
+
+		reqInitLoggerEvent := sublog.With().
 			Str("layer", appLayer).
 			Str("uuid", reqUuid).
 			Str("method", c.Request.Method).
 			Str("path", path).
-			Str("ip", c.ClientIP()).
-			Str("user_agent", c.Request.UserAgent()).
-			Logger()
+			Str("ip", c.ClientIP())
 
-		reqInitLogger.Debug().Msg("request detected")
+		userAgent := c.Request.UserAgent()
+		if userAgent != "" {
+			reqInitLoggerEvent = reqInitLoggerEvent.Str("user_agent", userAgent)
+		}
+
+		reqInitLogger := reqInitLoggerEvent.Logger()
+
+		if noCheck {
+			reqInitLogger.Debug().Msg("request detected")
+		} else {
+			reqInitLogger.Debug().Msg("check detected")
+		}
 
 		c.Next()
 		track := true
@@ -86,7 +111,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 			track = false
 		}
 
-		if track {
+		if track && noCheck {
 			end := time.Now()
 			latency := end.Sub(start)
 			if newConfig.UTC {
@@ -113,7 +138,7 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 				Str("path", path).
 				Str("ip", c.ClientIP()).
 				Dur("latency", latency).
-				Str("user_agent", c.Request.UserAgent()).
+				Str("user_agent", userAgent).
 				Logger()
 
 			switch {
