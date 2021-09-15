@@ -20,8 +20,9 @@ type Config struct {
 	UTC            bool
 	SkipPath       []string
 	SkipPathRegexp *regexp.Regexp
-	CheckPath []string
+	CheckPath      []string
 	AppLayer       string
+	CheckLogging   bool
 }
 
 // SetLogger initializes the logging middleware.
@@ -95,7 +96,9 @@ func SetLogger(config ...Config) gin.HandlerFunc {
 		if noCheck {
 			reqInitLogger.Debug().Msg("request detected")
 		} else {
-			reqInitLogger.Debug().Msg("check detected")
+			if newConfig.CheckLogging {
+				reqInitLogger.Debug().Msg("check detected")
+			}
 		}
 
 		c.Next()
